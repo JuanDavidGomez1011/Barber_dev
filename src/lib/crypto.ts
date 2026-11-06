@@ -6,7 +6,8 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
  * si no existe, de SESSION_SECRET); sin ella, lo guardado en la base no sirve.
  */
 function key(): Buffer {
-  const secret = process.env.TOKEN_SECRET ?? process.env.SESSION_SECRET;
+  // `||` y no `??`: en .env.example viene TOKEN_SECRET="" (vacío = usar SESSION_SECRET).
+  const secret = process.env.TOKEN_SECRET || process.env.SESSION_SECRET;
   if (!secret || secret.length < 32) throw new Error("Falta TOKEN_SECRET o SESSION_SECRET (mínimo 32 caracteres).");
   return createHash("sha256").update(`manage-token:${secret}`).digest();
 }
