@@ -25,6 +25,13 @@ if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED !== "true") 
   process.exit(1);
 }
 
+// Sin contraseña por defecto en el código: cada quien define la suya en .env.
+const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "";
+if (SEED_PASSWORD.length < 8) {
+  console.error("Define SEED_PASSWORD en .env (mínimo 8 caracteres): es la contraseña de los usuarios de ejemplo.");
+  process.exit(1);
+}
+
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DIRECT_URL ?? process.env.DATABASE_URL }),
 });
@@ -189,7 +196,7 @@ async function main() {
   });
 
   console.log("Usuarios, servicios y barberos…");
-  const password = process.env.SEED_PASSWORD ?? "barberia123";
+  const password = SEED_PASSWORD;
   const passwordHash = await bcrypt.hash(password, 10);
 
   await db.user.create({
