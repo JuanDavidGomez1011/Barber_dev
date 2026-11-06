@@ -26,14 +26,14 @@ export function ConfirmActionButton({
         <button type="button" onClick={() => setAsking(true)} className={buttonClass[variant]}>
           {label}
         </button>
-        {error && <span className="text-xs text-red-300">{error}</span>}
+        {error && <span className="text-xs text-oxblood">{error}</span>}
       </span>
     );
   }
 
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="text-sm text-ink-300">{confirmLabel}</span>
+      <span className="text-sm text-char-soft">{confirmLabel}</span>
       <button
         type="button"
         disabled={pending}

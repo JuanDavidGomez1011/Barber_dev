@@ -64,26 +64,26 @@ async function Services() {
       <ul className="space-y-3">
         {services.map((s) => (
           <li key={s.id}>
-            <details className={cn("group rounded-2xl border border-ink-800 bg-ink-900", !s.active && "opacity-60")}>
+            <details className={cn("group border border-rule bg-paper-light", !s.active && "opacity-60")}>
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
                   <p className="font-medium">
-                    {s.name} {!s.active && <span className="text-xs text-ink-500">(oculto)</span>}
+                    {s.name} {!s.active && <span className="text-xs text-char-mute">(oculto)</span>}
                   </p>
-                  <p className="text-sm text-ink-500">
+                  <p className="text-sm text-char-mute">
                     {formatDuration(s.durationMin)} · {s._count.barbers} barberos · {s._count.appointments} citas en total
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold text-brass-300">{formatCop(s.priceCop)}</span>
-                  <span className="text-ink-500 transition group-open:rotate-180">⌄</span>
+                  <span className="font-semibold text-oxblood">{formatCop(s.priceCop)}</span>
+                  <span className="text-char-mute transition group-open:rotate-180">⌄</span>
                 </div>
               </summary>
-              <div className="space-y-4 border-t border-ink-800 p-4">
+              <div className="space-y-4 border-t border-rule p-4">
                 <ActionForm action={saveServiceAction}>
                   <ServiceFields s={s} />
                 </ActionForm>
-                <div className="border-t border-ink-800 pt-3">
+                <div className="border-t border-rule pt-3">
                   <ConfirmActionButton
                     action={deleteServiceAction.bind(null, s.id)}
                     label="Eliminar servicio"
@@ -97,7 +97,7 @@ async function Services() {
       </ul>
 
       <Card>
-        <h2 className="mb-3 font-display text-xl font-semibold">Nuevo servicio</h2>
+        <h2 className="mb-3 font-serif text-2xl tracking-tight">Nuevo servicio</h2>
         <ActionForm action={saveServiceAction} submitLabel="Crear servicio" resetOnSuccess>
           <ServiceFields s={{}} />
         </ActionForm>

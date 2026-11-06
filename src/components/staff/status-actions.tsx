@@ -24,7 +24,7 @@ export function StatusActions({ appointmentId, status, started }: Props) {
   if (status === "CANCELLED") return null;
 
   const btn =
-    "rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
+    "border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div className="space-y-2">
@@ -35,7 +35,7 @@ export function StatusActions({ appointmentId, status, started }: Props) {
               type="button"
               disabled={pending || !started}
               onClick={() => change("COMPLETED")}
-              className={`${btn} border-emerald-700 text-emerald-300 hover:bg-emerald-950`}
+              className={`${btn} border-moss/40 text-moss hover:bg-moss/10`}
             >
               ✓ Completada
             </button>
@@ -43,11 +43,11 @@ export function StatusActions({ appointmentId, status, started }: Props) {
               type="button"
               disabled={pending || !started}
               onClick={() => change("NO_SHOW")}
-              className={`${btn} border-amber-800 text-amber-300 hover:bg-amber-950`}
+              className={`${btn} border-amber-700/40 text-amber-800 hover:bg-amber-100`}
             >
               No asistió
             </button>
-            {!started && <span className="self-center text-xs text-ink-500">Disponible cuando empiece la cita</span>}
+            {!started && <span className="self-center text-xs text-char-mute">Disponible cuando empiece la cita</span>}
           </>
         )}
         {(status === "COMPLETED" || status === "NO_SHOW") && (
@@ -55,13 +55,13 @@ export function StatusActions({ appointmentId, status, started }: Props) {
             type="button"
             disabled={pending}
             onClick={() => change("CONFIRMED")}
-            className={`${btn} border-ink-700 text-ink-300 hover:border-ink-500`}
+            className={`${btn} border-rule text-char-soft hover:border-char-mute`}
           >
             Deshacer
           </button>
         )}
       </div>
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs text-oxblood">{error}</p>}
     </div>
   );
 }

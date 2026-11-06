@@ -16,8 +16,73 @@
   --color-brass-300: #f0cf8e;
   --color-brass-400: #e3b35f;
   --color-brass-500: #c9963f;
-  /* Marcas de gráficos: validado para la superficie oscura (L 0.48–0.67, contraste >= 3:1) */
-  --color-chart-1: #b8862f;
+  /* Marcas de gráficos sobre el papel de los paneles (contraste > 7:1) */
+  --color-chart-1: #7a2620;
+
+  /* ---- Sitio público: papel crema, tinta y rojo cuero ---- */
+  --font-serif: var(--font-bodoni);
+  --font-body: var(--font-archivo);
+  --color-paper: #f2ece1;
+  --color-paper-light: #faf7f1;
+  --color-paper-deep: #e7dfd0;
+  --color-rule: #cbbfaa;
+  --color-char: #1c1915;
+  --color-char-soft: #463f37;
+  /* Texto secundario: contraste 4.9:1 sobre el papel */
+  --color-char-mute: #6b6156;
+  --color-oxblood: #7a2620;
+  --color-oxblood-deep: #5c1b16;
+  --color-moss: #2f5a44;
+}
+
+/* Tema del sitio público (el body sigue oscuro para los paneles) */
+.theme-paper {
+  color-scheme: light;
+  background: var(--color-paper);
+  color: var(--color-char);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+.theme-paper ::selection {
+  background: var(--color-oxblood);
+  color: var(--color-paper-light);
+}
+
+/* Rótulos condensados en mayúsculas (como letreros de barbería) */
+.label-caps {
+  font-family: var(--font-body), ui-sans-serif, sans-serif;
+  font-stretch: 75%;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+/* Línea de puntos entre el servicio y el precio, como en una carta impresa */
+.leader {
+  flex: 1;
+  min-width: 1.5rem;
+  border-bottom: 1.5px dotted var(--color-rule);
+  transform: translateY(-0.3em);
+}
+
+/* Franja de poste de barbería: fina, solo como firma en el borde superior */
+.barber-stripe {
+  height: 5px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-oxblood) 0 8px,
+    var(--color-paper-light) 8px 16px,
+    var(--color-char) 16px 24px,
+    var(--color-paper-light) 24px 32px
+  );
+}
+
+/* Separador "perforado" del comprobante de cita */
+.perforation {
+  height: 1px;
+  background-image: linear-gradient(to right, var(--color-rule) 50%, transparent 50%);
+  background-size: 10px 1px;
 }
 
 html {

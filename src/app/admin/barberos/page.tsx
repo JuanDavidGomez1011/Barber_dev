@@ -42,19 +42,19 @@ async function Barbers() {
           <li key={b.id}>
             <Link
               href={`/admin/barberos/${b.id}`}
-              className={cn("block space-y-2 rounded-2xl border border-ink-800 bg-ink-900 p-4 transition hover:border-brass-500", !b.active && "opacity-60")}
+              className={cn("block space-y-2 border border-rule bg-paper-light p-4 transition hover:border-char", !b.active && "opacity-60")}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-medium">
-                    {b.name} {!b.active && <span className="text-xs text-ink-500">(inactivo)</span>}
+                    {b.name} {!b.active && <span className="text-xs text-char-mute">(inactivo)</span>}
                   </p>
-                  <p className="text-sm text-ink-500">{b.user?.email ?? "Sin usuario de acceso"}</p>
+                  <p className="text-sm text-char-mute">{b.user?.email ?? "Sin usuario de acceso"}</p>
                 </div>
-                <span className="text-sm text-brass-300">Editar →</span>
+                <span className="text-sm text-oxblood">Editar →</span>
               </div>
-              <p className="text-sm text-ink-300">{b.services.map((s) => s.service.name).join(" · ") || "Sin servicios asignados"}</p>
-              <p className="text-xs text-ink-500">
+              <p className="text-sm text-char-soft">{b.services.map((s) => s.service.name).join(" · ") || "Sin servicios asignados"}</p>
+              <p className="text-xs text-char-mute">
                 {days.length === 0
                   ? "Sin horario: no aparece en las reservas"
                   : days

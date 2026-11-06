@@ -34,7 +34,7 @@ export function WeekChart({ days, today }: { days: Day[]; today: string }) {
           {ticks.map((t) => (
             <span
               key={t}
-              className="absolute right-0 -translate-y-1/2 text-[11px] tabular-nums text-ink-500"
+              className="absolute right-0 -translate-y-1/2 text-[11px] tabular-nums text-char-mute"
               style={{ top: PLOT_H - (t / max) * PLOT_H }}
             >
               {t}
@@ -43,7 +43,7 @@ export function WeekChart({ days, today }: { days: Day[]; today: string }) {
         </div>
         <div className="relative flex-1">
           {ticks.map((t) => (
-            <div key={t} className="absolute inset-x-0 h-px bg-ink-800" style={{ top: PLOT_H - (t / max) * PLOT_H }} />
+            <div key={t} className="absolute inset-x-0 h-px bg-paper-deep" style={{ top: PLOT_H - (t / max) * PLOT_H }} />
           ))}
           <div className="absolute inset-x-0 top-0 grid grid-cols-7" style={{ height: PLOT_H }}>
             {days.map((d, i) => {
@@ -69,21 +69,21 @@ export function WeekChart({ days, today }: { days: Day[]; today: string }) {
                     />
                   )}
                   {isToday && d.count > 0 && (
-                    <span className="absolute text-xs font-semibold text-ink-100" style={{ bottom: h + 4 }}>
+                    <span className="absolute text-xs font-semibold text-char" style={{ bottom: h + 4 }}>
                       {d.count}
                     </span>
                   )}
                   {hover === i && (
                     <span
                       role="tooltip"
-                      className="pointer-events-none absolute z-10 w-max rounded-lg border border-ink-700 bg-ink-950 px-2.5 py-1.5 text-left text-xs shadow-lg"
+                      className="pointer-events-none absolute z-10 w-max border border-rule bg-paper px-2.5 py-1.5 text-left text-xs shadow-lg"
                       style={{ bottom: h + 24 }}
                     >
-                      <span className="block font-semibold text-ink-100">
+                      <span className="block font-semibold text-char">
                         {chip.weekday} {chip.day} {chip.month}
                       </span>
-                      <span className="block text-ink-300">{d.count} citas</span>
-                      <span className="block text-ink-300">{formatCop(d.income)}</span>
+                      <span className="block text-char-soft">{d.count} citas</span>
+                      <span className="block text-char-soft">{formatCop(d.income)}</span>
                     </span>
                   )}
                 </button>
@@ -92,7 +92,7 @@ export function WeekChart({ days, today }: { days: Day[]; today: string }) {
           </div>
           <div className="absolute inset-x-0 grid grid-cols-7 text-center" style={{ top: PLOT_H + 8 }}>
             {days.map((d) => (
-              <span key={d.date} className={cn("text-xs", d.date === today ? "font-semibold text-ink-100" : "text-ink-500")}>
+              <span key={d.date} className={cn("text-xs", d.date === today ? "font-semibold text-char" : "text-char-mute")}>
                 {formatDayChip(d.date).weekday}
               </span>
             ))}
@@ -100,21 +100,21 @@ export function WeekChart({ days, today }: { days: Day[]; today: string }) {
         </div>
       </div>
 
-      <details className="mt-2 text-xs text-ink-500">
+      <details className="mt-2 text-xs text-char-mute">
         <summary className="cursor-pointer">Ver como tabla</summary>
         <table className="mt-2 w-full text-left tabular-nums">
           <thead>
-            <tr className="text-ink-500">
+            <tr className="text-char-mute">
               <th className="py-1 font-medium">Día</th>
               <th className="py-1 text-right font-medium">Citas</th>
               <th className="py-1 text-right font-medium">Ingresos est.</th>
             </tr>
           </thead>
-          <tbody className="text-ink-300">
+          <tbody className="text-char-soft">
             {days.map((d) => {
               const c = formatDayChip(d.date);
               return (
-                <tr key={d.date} className="border-t border-ink-800">
+                <tr key={d.date} className="border-t border-rule">
                   <td className="py-1">
                     {c.weekday} {c.day} {c.month}
                   </td>

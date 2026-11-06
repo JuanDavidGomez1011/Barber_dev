@@ -10,7 +10,7 @@ import { getBarberWeek } from "@/server/services/agenda.service";
 
 export default function BarberWeekPage({ searchParams }: PageProps<"/barbero/semana">) {
   return (
-    <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-ink-900" />}>
+    <Suspense fallback={<div className="h-96 animate-pulse bg-paper-light" />}>
       <WeekAgenda searchParams={searchParams} />
     </Suspense>
   );
@@ -44,7 +44,7 @@ async function WeekAgenda({ searchParams }: Pick<PageProps<"/barbero/semana">, "
         label={weekStart === thisWeek ? "Esta semana" : weekLabel(weekStart)}
         isToday={weekStart === thisWeek}
       />
-      <p className="-mt-3 text-center text-sm text-ink-500">
+      <p className="-mt-3 text-center text-sm text-char-mute">
         {weekLabel(weekStart)} · {live.length} citas · {formatCop(income)} estimados
       </p>
 
@@ -58,16 +58,16 @@ async function WeekAgenda({ searchParams }: Pick<PageProps<"/barbero/semana">, "
               key={day.date}
               href={day.date === today ? "/barbero" : `/barbero?fecha=${day.date}`}
               className={cn(
-                "block rounded-2xl border bg-ink-900 p-3 transition hover:border-brass-500 md:min-h-48",
-                day.date === today ? "border-brass-400" : "border-ink-800",
-                off && "bg-ink-900/40",
+                "block border bg-paper-light p-3 transition hover:border-char md:min-h-48",
+                day.date === today ? "border-char" : "border-rule",
+                off && "bg-paper-light/40",
               )}
             >
               <div className="mb-2 flex items-baseline justify-between md:block">
                 <p className="text-sm font-semibold">
                   {chip.weekday} {chip.day}
                 </p>
-                <p className="text-xs text-ink-500">
+                <p className="text-xs text-char-mute">
                   {day.closedReason ? "Cerrado" : day.shifts.length === 0 ? "Libre" : `${appts.length} citas`}
                 </p>
               </div>
@@ -75,12 +75,12 @@ async function WeekAgenda({ searchParams }: Pick<PageProps<"/barbero/semana">, "
                 {appts.map((a) => (
                   <li key={a.id} className="flex items-center gap-1.5 text-xs">
                     <span className={cn("size-1.5 shrink-0 rounded-full", STATUS_META[a.status].dot)} />
-                    <span className="text-ink-300">{formatMinute(toMinuteOfDay(a.startsAt))}</span>
-                    <span className="truncate text-ink-500">{a.customer.name.split(" ")[0]}</span>
+                    <span className="text-char-soft">{formatMinute(toMinuteOfDay(a.startsAt))}</span>
+                    <span className="truncate text-char-mute">{a.customer.name.split(" ")[0]}</span>
                   </li>
                 ))}
                 {day.blocks.map((b) => (
-                  <li key={b.id} className="truncate text-xs text-ink-500">
+                  <li key={b.id} className="truncate text-xs text-char-mute">
                     🔒 {b.reason ?? "Bloqueado"}
                   </li>
                 ))}

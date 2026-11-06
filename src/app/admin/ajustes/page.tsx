@@ -27,7 +27,7 @@ async function Settings() {
   return (
     <Card>
       <ActionForm action={saveSettingsAction}>
-        <h2 className="font-display text-xl font-semibold">Negocio</h2>
+        <h2 className="font-serif text-2xl tracking-tight">Negocio</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Nombre de la barbería">
             <input name="name" required maxLength={80} defaultValue={s.name} className={inputClass} />
@@ -43,7 +43,7 @@ async function Settings() {
           </Field>
         </div>
 
-        <h2 className="pt-2 font-display text-xl font-semibold">Reglas de reserva</h2>
+        <h2 className="pt-2 font-serif text-2xl tracking-tight">Reglas de reserva</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Anticipación mínima (minutos)" hint="120 = no se puede reservar con menos de 2 h">
             <input name="minLeadMinutes" type="number" min={0} step={15} defaultValue={s.minLeadMinutes} className={inputClass} />
@@ -64,7 +64,7 @@ async function Settings() {
             <input name="bookingHorizonDays" type="number" min={1} max={180} defaultValue={s.bookingHorizonDays} className={inputClass} />
           </Field>
         </div>
-        <p className="text-xs text-ink-500">
+        <p className="text-xs text-char-mute">
           Zona horaria: {s.timezone} · Moneda: {s.currency}
         </p>
       </ActionForm>

@@ -21,11 +21,11 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const STATUS: Record<string, { label: string; className: string }> = {
-  PENDING: { label: "Pendiente", className: "border-sky-800 bg-sky-950 text-sky-300" },
-  SENDING: { label: "Enviando", className: "border-sky-800 bg-sky-950 text-sky-300" },
-  SENT: { label: "Enviada", className: "border-emerald-800 bg-emerald-950 text-emerald-300" },
-  FAILED: { label: "Falló", className: "border-red-900 bg-red-950 text-red-300" },
-  CANCELLED: { label: "Descartada", className: "border-ink-700 bg-ink-800 text-ink-300" },
+  PENDING: { label: "Pendiente", className: "border-sky-700/40 bg-sky-100 text-sky-800" },
+  SENDING: { label: "Enviando", className: "border-sky-700/40 bg-sky-100 text-sky-800" },
+  SENT: { label: "Enviada", className: "border-moss/40 bg-moss/10 text-moss" },
+  FAILED: { label: "Falló", className: "border-oxblood/50 bg-oxblood/10 text-oxblood" },
+  CANCELLED: { label: "Descartada", className: "border-rule bg-paper-deep text-char-soft" },
 };
 
 export default function NotificationsPage({ searchParams }: PageProps<"/admin/notificaciones">) {
@@ -53,12 +53,12 @@ async function Notifications({ searchParams }: Pick<PageProps<"/admin/notificaci
     <Link
       href={key ? `/admin/notificaciones?estado=${key}` : "/admin/notificaciones"}
       className={cn(
-        "rounded-full border px-3 py-1 text-sm transition",
-        status === key ? "border-brass-400 bg-ink-800 text-ink-100" : "border-ink-700 text-ink-300 hover:border-ink-500",
+        "border px-3 py-1 text-sm transition-colors",
+        status === key ? "border-char bg-paper-deep text-char" : "border-rule text-char-soft hover:border-char-mute",
       )}
     >
       {label}
-      {count !== undefined && <span className="ml-1.5 tabular-nums text-ink-500">{count}</span>}
+      {count !== undefined && <span className="ml-1.5 tabular-nums text-char-mute">{count}</span>}
     </Link>
   );
 
@@ -67,9 +67,9 @@ async function Notifications({ searchParams }: Pick<PageProps<"/admin/notificaci
       <Card className="flex flex-wrap items-center justify-between gap-4">
         <div className="text-sm">
           <p>
-            Proveedor activo: <span className="font-semibold text-brass-300">{provider}</span>
+            Proveedor activo: <span className="font-semibold text-oxblood">{provider}</span>
           </p>
-          <p className="text-ink-500">
+          <p className="text-char-mute">
             {provider === "console"
               ? "Modo simulado: los mensajes se escriben en los logs del servidor, no se envían."
               : "Los mensajes se envían de verdad por WhatsApp."}
@@ -89,32 +89,32 @@ async function Notifications({ searchParams }: Pick<PageProps<"/admin/notificaci
       </div>
 
       {data.rows.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-ink-800 p-8 text-center text-sm text-ink-500">No hay notificaciones.</p>
+        <p className=" border border-dashed border-rule p-8 text-center text-sm text-char-mute">No hay notificaciones.</p>
       ) : (
-        <ul className="divide-y divide-ink-800 overflow-hidden rounded-2xl border border-ink-800 bg-ink-900">
+        <ul className="divide-y divide-rule overflow-hidden border border-rule bg-paper-light">
           {data.rows.map((n) => (
             <li key={n.id} className="space-y-2 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="text-sm">
                   <p className="font-medium">
                     {TYPE_LABEL[n.type]} · {n.appointment.customer.name}{" "}
-                    <span className="font-normal text-ink-500">{formatPhone(n.appointment.customer.phone)}</span>
+                    <span className="font-normal text-char-mute">{formatPhone(n.appointment.customer.phone)}</span>
                   </p>
-                  <p className="text-ink-500">
+                  <p className="text-char-mute">
                     Cita: {formatLongDate(n.appointment.startsAt)}, {formatTime(n.appointment.startsAt)} · {n.appointment.service.name} con{" "}
                     {n.appointment.barber.name}
                   </p>
-                  <p className="text-xs text-ink-500">
+                  <p className="text-xs text-char-mute">
                     {n.status === "SENT" && n.sentAt
                       ? `Enviada ${formatLongDate(n.sentAt).toLowerCase()}, ${formatTime(n.sentAt)}`
                       : `Programada para ${formatLongDate(n.scheduledFor).toLowerCase()}, ${formatTime(n.scheduledFor)}`}
                     {n.attempts > 0 && ` · ${n.attempts} ${n.attempts === 1 ? "intento" : "intentos"}`}
                     {n.providerMessageId && ` · ID ${n.providerMessageId}`}
                   </p>
-                  {n.error && <p className="text-xs text-red-300/80">{n.error}</p>}
+                  {n.error && <p className="text-xs text-oxblood/80">{n.error}</p>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={cn("rounded-full border px-2.5 py-0.5 text-xs font-semibold", STATUS[n.status].className)}>
+                  <span className={cn("label-caps border px-2 py-1 !text-[0.62rem]", STATUS[n.status].className)}>
                     {STATUS[n.status].label}
                   </span>
                   {(n.status === "FAILED" || n.status === "CANCELLED") && (
@@ -123,8 +123,8 @@ async function Notifications({ searchParams }: Pick<PageProps<"/admin/notificaci
                 </div>
               </div>
               <details className="text-sm">
-                <summary className="cursor-pointer text-xs text-brass-300">Ver mensaje</summary>
-                <pre className="mt-2 max-w-xl whitespace-pre-wrap rounded-xl bg-emerald-950/40 p-3 font-sans text-ink-100">{n.preview}</pre>
+                <summary className="cursor-pointer text-xs text-oxblood">Ver mensaje</summary>
+                <pre className="mt-2 max-w-xl whitespace-pre-wrap bg-moss/10 p-3 font-body text-sm text-char">{n.preview}</pre>
               </details>
             </li>
           ))}

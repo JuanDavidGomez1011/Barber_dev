@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { cn } from "@/lib/cn";
 import { formatLongDate, formatTime } from "@/lib/format";
 import { cancelBookingAction, rescheduleBookingAction } from "@/server/actions/booking";
+import { Arrow, btnPrimary, btnSecondary, Notice, textLink } from "../public/ui";
 import { SlotPicker, type Slot } from "./slot-picker";
 
 interface Props {
@@ -35,19 +36,19 @@ export function AppointmentActions(props: Props) {
 
   if (!canModify) {
     return (
-      <p className="rounded-2xl border border-ink-800 bg-ink-900 p-4 text-sm text-ink-300">
-        Las citas se pueden cancelar o reprogramar hasta {cancelLimitHours} horas antes.
+      <Notice tone="info">
+        Las citas se pueden cancelar o cambiar hasta {cancelLimitHours} horas antes.
         {whatsappUrl && (
           <>
             {" "}
             Si necesitas un cambio,{" "}
-            <a href={whatsappUrl} className="text-brass-300 underline underline-offset-4">
+            <a href={whatsappUrl} className={textLink}>
               escríbenos por WhatsApp
             </a>
             .
           </>
         )}
-      </p>
+      </Notice>
     );
   }
 
@@ -83,29 +84,21 @@ export function AppointmentActions(props: Props) {
 
   return (
     <section className="space-y-4">
-      {message && (
-        <p role="status" className="rounded-xl border border-emerald-800 bg-emerald-950/50 p-3 text-sm text-emerald-200">
-          {message}
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="rounded-xl border border-red-900/60 bg-red-950/40 p-3 text-sm text-red-200">
-          {error}
-        </p>
-      )}
+      {message && <Notice tone="success">{message}</Notice>}
+      {error && <Notice tone="error">{error}</Notice>}
 
       {mode === "idle" && (
-        <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => {
                 setMessage(null);
                 setMode("reschedule");
               }}
-              className="rounded-full bg-brass-400 py-3 font-semibold text-ink-950 transition hover:bg-brass-300"
+              className={btnPrimary}
             >
-              Reprogramar
+              Cambiar hora
             </button>
             <button
               type="button"
@@ -113,35 +106,28 @@ export function AppointmentActions(props: Props) {
                 setMessage(null);
                 setMode("confirm-cancel");
               }}
-              className="rounded-full border border-ink-700 py-3 font-semibold text-ink-300 transition hover:border-red-700 hover:text-red-300"
+              className={cn(btnSecondary, "hover:border-oxblood hover:bg-oxblood")}
             >
               Cancelar cita
             </button>
           </div>
-          <p className="text-center text-xs text-ink-500">
+          <p className="text-center text-xs text-char-mute">
             Puedes hacer cambios hasta el {formatLongDate(deadline).toLowerCase()} a las {formatTime(deadline)}
           </p>
         </div>
       )}
 
       {mode === "confirm-cancel" && (
-        <div className="space-y-3 rounded-2xl border border-red-900/60 bg-red-950/30 p-4">
-          <p className="font-medium">¿Seguro que quieres cancelar tu cita?</p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              disabled={pending}
-              onClick={cancel}
-              className="rounded-full bg-red-600 py-2.5 font-semibold text-white transition hover:bg-red-500 disabled:opacity-60"
-            >
+        <div className="space-y-4 border border-oxblood/60 bg-oxblood/[0.05] p-5">
+          <div className="space-y-1">
+            <p className="font-serif text-xl">¿Cancelar tu cita?</p>
+            <p className="text-sm text-char-mute">El horario queda libre para otra persona.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button type="button" disabled={pending} onClick={cancel} className={cn(btnPrimary, "bg-oxblood hover:bg-oxblood-deep")}>
               {pending ? "Cancelando…" : "Sí, cancelar"}
             </button>
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => setMode("idle")}
-              className="rounded-full border border-ink-700 py-2.5 font-semibold transition hover:border-ink-500"
-            >
+            <button type="button" disabled={pending} onClick={() => setMode("idle")} className={btnSecondary}>
               No, mantener
             </button>
           </div>
@@ -149,15 +135,15 @@ export function AppointmentActions(props: Props) {
       )}
 
       {mode === "reschedule" && (
-        <div className="space-y-5 rounded-2xl border border-ink-800 bg-ink-900 p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-semibold">Nuevo horario</h2>
-            <button type="button" onClick={() => setMode("idle")} className="text-sm text-ink-300 hover:text-ink-100">
+        <div className="space-y-6 border-t border-char pt-6">
+          <div className="flex items-end justify-between">
+            <h2 className="font-serif text-[1.9rem] leading-tight tracking-tight">Nueva hora</h2>
+            <button type="button" onClick={() => setMode("idle")} className={`mb-1 text-sm text-char-soft ${textLink}`}>
               Cerrar
             </button>
           </div>
 
-          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
+          <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:px-0">
             {[...barbers, { id: null, name: "Cualquiera" }].map((b) => (
               <button
                 key={b.id ?? "any"}
@@ -167,8 +153,8 @@ export function AppointmentActions(props: Props) {
                   setSlot(null);
                 }}
                 className={cn(
-                  "shrink-0 rounded-full border px-4 py-1.5 text-sm transition",
-                  barberId === b.id ? "border-brass-400 bg-brass-400 text-ink-950" : "border-ink-700 hover:border-brass-500",
+                  "shrink-0 border px-4 py-2 text-sm transition-colors",
+                  barberId === b.id ? "border-char bg-char text-paper-light" : "border-rule bg-paper-light/50 hover:border-char",
                 )}
               >
                 {b.name}
@@ -185,13 +171,16 @@ export function AppointmentActions(props: Props) {
             reloadKey={reloadKey}
           />
 
-          <button
-            type="button"
-            disabled={!slot || pending}
-            onClick={reschedule}
-            className="w-full rounded-full bg-brass-400 py-3 font-semibold text-ink-950 transition hover:bg-brass-300 disabled:cursor-not-allowed disabled:bg-ink-800 disabled:text-ink-500"
-          >
-            {pending ? "Guardando…" : slot ? `Cambiar a ${formatTime(slot.startsAt)}` : "Elige un horario"}
+          <button type="button" disabled={!slot || pending} onClick={reschedule} className={cn(btnPrimary, "w-full")}>
+            {pending ? (
+              "Guardando…"
+            ) : slot ? (
+              <>
+                Cambiar a las {formatTime(slot.startsAt)} <Arrow />
+              </>
+            ) : (
+              "Elige un horario"
+            )}
           </button>
         </div>
       )}

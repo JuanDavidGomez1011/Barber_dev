@@ -19,7 +19,7 @@ const DAYS = [
 ] as const;
 
 const timeInput =
-  "w-28 rounded-lg border border-ink-800 bg-ink-950 px-2 py-1.5 text-sm outline-none focus:border-brass-400 [color-scheme:dark]";
+  "w-28 border border-rule bg-paper px-2 py-1.5 text-sm outline-none focus:border-char";
 
 /** Editor de turnos semanales: varios turnos por día (turno partido), copiar a otros días. */
 export function WorkingHoursEditor({ barberId, initial }: { barberId: string; initial: Omit<Shift, "key">[] }) {
@@ -52,20 +52,20 @@ export function WorkingHoursEditor({ barberId, initial }: { barberId: string; in
         value={JSON.stringify(shifts.map(({ dayOfWeek, start, end }) => ({ dayOfWeek, start, end })))}
       />
 
-      <ul className="divide-y divide-ink-800 rounded-xl border border-ink-800">
+      <ul className="divide-y divide-rule border border-rule">
         {DAYS.map(([dow, label]) => {
           const day = shifts.filter((s) => s.dayOfWeek === dow).sort((a, b) => a.start.localeCompare(b.start));
           return (
             <li key={dow} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
-              <span className={cn("w-24 text-sm font-medium", day.length === 0 && "text-ink-500")}>{label}</span>
+              <span className={cn("w-24 text-sm font-medium", day.length === 0 && "text-char-mute")}>{label}</span>
               <div className="flex flex-1 flex-wrap items-center gap-2">
-                {day.length === 0 && <span className="text-sm text-ink-500">No trabaja</span>}
+                {day.length === 0 && <span className="text-sm text-char-mute">No trabaja</span>}
                 {day.map((s) => (
                   <span key={s.key} className="inline-flex items-center gap-1.5">
                     <input type="time" step={900} value={s.start} onChange={(e) => update(s.key, { start: e.target.value })} className={timeInput} aria-label={`${label}: inicio`} />
-                    <span className="text-ink-500">–</span>
+                    <span className="text-char-mute">–</span>
                     <input type="time" step={900} value={s.end} onChange={(e) => update(s.key, { end: e.target.value })} className={timeInput} aria-label={`${label}: fin`} />
-                    <button type="button" onClick={() => remove(s.key)} className="px-1 text-ink-500 hover:text-red-300" aria-label="Quitar turno">
+                    <button type="button" onClick={() => remove(s.key)} className="px-1 text-char-mute hover:text-oxblood" aria-label="Quitar turno">
                       ✕
                     </button>
                   </span>
@@ -79,7 +79,7 @@ export function WorkingHoursEditor({ barberId, initial }: { barberId: string; in
                   if (last) add(dow, addHour(last.end), addHour(addHour(last.end), 3));
                   else add(dow);
                 }}
-                className="text-xs text-brass-300 hover:underline"
+                className="text-xs text-oxblood hover:underline"
               >
                 + turno
               </button>
@@ -96,7 +96,7 @@ export function WorkingHoursEditor({ barberId, initial }: { barberId: string; in
           Copiar lunes a martes–sábado
         </button>
         {state && (
-          <p role={state.ok ? "status" : "alert"} className={cn("text-sm", state.ok ? "text-emerald-300" : "text-red-300")}>
+          <p role={state.ok ? "status" : "alert"} className={cn("text-sm", state.ok ? "text-moss" : "text-oxblood")}>
             {state.ok ? state.message : state.error}
           </p>
         )}

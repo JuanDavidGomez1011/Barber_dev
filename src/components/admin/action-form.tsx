@@ -50,7 +50,7 @@ export function ActionForm({
           {pending ? "Guardando…" : submitLabel}
         </button>
         {state && (
-          <p role={state.ok ? "status" : "alert"} className={cn("text-sm", state.ok ? "text-emerald-300" : "text-red-300")}>
+          <p role={state.ok ? "status" : "alert"} className={cn("text-sm", state.ok ? "text-moss" : "text-oxblood")}>
             {state.ok ? state.message : state.error}
           </p>
         )}

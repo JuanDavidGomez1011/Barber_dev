@@ -8,7 +8,7 @@ import { getBarberDay } from "@/server/services/agenda.service";
 
 export default function BarberDayPage({ searchParams }: PageProps<"/barbero">) {
   return (
-    <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-ink-900" />}>
+    <Suspense fallback={<div className="h-96 animate-pulse bg-paper-light" />}>
       <DayAgenda searchParams={searchParams} />
     </Suspense>
   );
@@ -38,7 +38,7 @@ async function DayAgenda({ searchParams }: Pick<PageProps<"/barbero">, "searchPa
         label={date === today ? "Hoy" : formatLongDate(zonedToUtc(date, 12 * 60))}
         isToday={date === today}
       />
-      {date === today && <p className="-mt-3 text-center text-sm text-ink-500">{formatLongDate(now)}</p>}
+      {date === today && <p className="-mt-3 text-center text-sm text-char-mute">{formatLongDate(now)}</p>}
 
       <div className="grid grid-cols-3 gap-2 text-center">
         <Stat label="Citas" value={String(live.length)} />
@@ -46,7 +46,7 @@ async function DayAgenda({ searchParams }: Pick<PageProps<"/barbero">, "searchPa
         <Stat label="Ingresos est." value={formatCop(income)} />
       </div>
 
-      <p className="text-center text-xs text-ink-500">
+      <p className="text-center text-xs text-char-mute">
         {day.closedReason
           ? `Local cerrado: ${day.closedReason}`
           : day.shifts.length === 0
@@ -61,10 +61,10 @@ async function DayAgenda({ searchParams }: Pick<PageProps<"/barbero">, "searchPa
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-2xl border border-ink-800 bg-ink-900 px-2 py-3">
-      <p className="text-lg font-semibold">{value}</p>
-      <p className="text-xs text-ink-500">{label}</p>
-      {sub && <p className="text-[11px] text-ink-500">{sub}</p>}
+    <div className=" border border-rule bg-paper-light px-2 py-3">
+      <p className="font-serif text-xl">{value}</p>
+      <p className="text-xs text-char-mute">{label}</p>
+      {sub && <p className="text-[11px] text-char-mute">{sub}</p>}
     </div>
   );
 }

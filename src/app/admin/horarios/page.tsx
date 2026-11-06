@@ -44,16 +44,16 @@ async function Hours() {
   return (
     <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
       <Card>
-        <h2 className="mb-4 font-display text-xl font-semibold">Horario de atención</h2>
+        <h2 className="mb-4 font-serif text-2xl tracking-tight">Horario de atención</h2>
         <ActionForm action={setBusinessHoursAction}>
-          <ul className="divide-y divide-ink-800 rounded-xl border border-ink-800">
+          <ul className="divide-y divide-rule border border-rule">
             {DAYS.map(([dow, label]) => {
               const h = byDay.get(dow);
               return (
                 <li key={dow} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
                   <span className="w-24 text-sm font-medium">{label}</span>
                   <input type="time" step={900} name={`open_${dow}`} defaultValue={formatMinute(h?.openMinute ?? 540)} className={`${inputClass} w-28 py-1.5 text-sm`} aria-label={`${label}: apertura`} />
-                  <span className="text-ink-500">–</span>
+                  <span className="text-char-mute">–</span>
                   <input type="time" step={900} name={`close_${dow}`} defaultValue={formatMinute(h?.closeMinute ?? 1200)} className={`${inputClass} w-28 py-1.5 text-sm`} aria-label={`${label}: cierre`} />
                   <Checkbox name={`closed_${dow}`} label="Cerrado" defaultChecked={h?.isClosed ?? false} />
                 </li>
@@ -65,8 +65,8 @@ async function Hours() {
 
       <div className="space-y-5">
         <Card>
-          <h2 className="mb-1 font-display text-xl font-semibold">Festivos y días cerrados</h2>
-          <p className="mb-4 text-sm text-ink-500">Ese día no se ofrecen horarios, para ningún barbero.</p>
+          <h2 className="mb-1 font-serif text-2xl tracking-tight">Festivos y días cerrados</h2>
+          <p className="mb-4 text-sm text-char-mute">Ese día no se ofrecen horarios, para ningún barbero.</p>
           <ActionForm action={createClosedDayAction} submitLabel="Agregar día cerrado" resetOnSuccess>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Fecha">
@@ -83,14 +83,14 @@ async function Hours() {
         <Card>
           <h3 className="mb-3 font-medium">Próximos</h3>
           {closedDays.length === 0 ? (
-            <p className="text-sm text-ink-500">No hay días cerrados próximos.</p>
+            <p className="text-sm text-char-mute">No hay días cerrados próximos.</p>
           ) : (
-            <ul className="divide-y divide-ink-800">
+            <ul className="divide-y divide-rule">
               {closedDays.map((d) => (
                 <li key={d.id} className="flex items-center justify-between gap-3 py-2.5">
                   <div className="text-sm">
                     <p className="font-medium">{formatLongDate(zonedToUtc(d.date, 12 * 60))}</p>
-                    {d.reason && <p className="text-ink-500">{d.reason}</p>}
+                    {d.reason && <p className="text-char-mute">{d.reason}</p>}
                   </div>
                   <ConfirmActionButton action={deleteClosedDayAction.bind(null, d.id)} label="Quitar" variant="secondary" />
                 </li>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { formatDayChip, formatLongDate, formatTime } from "@/lib/format";
+import { Notice } from "../public/ui";
 import type { AvailabilityResult, Slot } from "@/server/services/availability.service";
 
 export type { Slot };
@@ -73,15 +74,15 @@ export function SlotPicker({ serviceId, barberId, token, selected, onSelect, rel
 
   if (state.status === "loading") {
     return (
-      <div className="space-y-4" aria-busy="true">
-        <div className="flex gap-2 overflow-hidden">
-          {Array.from({ length: 6 }, (_, i) => (
-            <div key={i} className="h-16 w-14 shrink-0 animate-pulse rounded-xl bg-ink-800" />
+      <div className="space-y-5" aria-busy="true">
+        <div className="flex gap-px overflow-hidden border border-rule bg-rule">
+          {Array.from({ length: 7 }, (_, i) => (
+            <div key={i} className="h-[4.5rem] w-16 shrink-0 animate-pulse bg-paper-deep/60" />
           ))}
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {Array.from({ length: 9 }, (_, i) => (
-            <div key={i} className="h-11 animate-pulse rounded-lg bg-ink-800" />
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+          {Array.from({ length: 10 }, (_, i) => (
+            <div key={i} className="h-11 animate-pulse bg-paper-deep/60" />
           ))}
         </div>
         <p className="sr-only">Cargando horarios…</p>
@@ -90,55 +91,63 @@ export function SlotPicker({ serviceId, barberId, token, selected, onSelect, rel
   }
 
   if (state.status === "error") {
-    return <p className="rounded-xl border border-red-900/60 bg-red-950/40 p-4 text-sm text-red-200">{state.message}</p>;
+    return <Notice tone="error">{state.message}</Notice>;
   }
 
   if (!firstAvailable) {
     return (
-      <p className="rounded-xl border border-ink-800 bg-ink-900 p-4 text-sm text-ink-300">
-        No hay horarios disponibles en los próximos días. Prueba con otro barbero o escríbenos por WhatsApp.
-      </p>
+      <Notice tone="info">
+        No hay horarios libres en los próximos días. Prueba con otro barbero o escríbenos por WhatsApp.
+      </Notice>
     );
   }
 
   return (
-    <div className="space-y-5">
-      <div className="no-scrollbar -mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1" role="listbox" aria-label="Día">
-        {days.map((d) => {
-          const chip = formatDayChip(d.date);
-          const disabled = d.slots.length === 0;
-          const active = d.date === activeDate;
-          return (
-            <button
-              key={d.date}
-              type="button"
-              role="option"
-              aria-selected={active}
-              disabled={disabled}
-              onClick={() => setPickedDate(d.date)}
-              className={cn(
-                "flex w-14 shrink-0 snap-start flex-col items-center rounded-xl border py-2 text-xs transition",
-                active
-                  ? "border-brass-400 bg-brass-400 text-ink-950"
-                  : "border-ink-800 bg-ink-900 text-ink-300 hover:border-ink-700",
-                disabled && "cursor-not-allowed opacity-35 hover:border-ink-800",
-              )}
-            >
-              <span className="font-medium">{chip.weekday}</span>
-              <span className="text-lg leading-tight font-semibold">{chip.day}</span>
-              <span className="capitalize">{chip.month}</span>
-            </button>
-          );
-        })}
+    <div className="space-y-7">
+      {/* Días: tira continua, como las hojas de una agenda */}
+      <div
+        className="no-scrollbar -mx-5 flex snap-x scroll-px-5 overflow-x-auto px-5 sm:mx-0 sm:scroll-px-0 sm:px-0"
+        role="listbox"
+        aria-label="Día"
+      >
+        <div className="flex border-y border-l border-rule">
+          {days.map((d) => {
+            const chip = formatDayChip(d.date);
+            const disabled = d.slots.length === 0;
+            const active = d.date === activeDate;
+            return (
+              <button
+                key={d.date}
+                type="button"
+                role="option"
+                aria-selected={active}
+                disabled={disabled}
+                onClick={() => setPickedDate(d.date)}
+                className={cn(
+                  "flex w-16 shrink-0 snap-start flex-col items-center border-r border-rule py-2.5 transition-colors",
+                  active ? "bg-char text-paper-light" : "bg-paper-light/40 text-char hover:bg-paper-deep/60",
+                  disabled && "cursor-not-allowed text-char-mute/40 hover:bg-paper-light/40",
+                )}
+              >
+                <span className="label-caps !text-[0.62rem] opacity-80">{chip.weekday}</span>
+                <span className="mt-1 font-serif text-2xl leading-none tabular-nums">{chip.day}</span>
+                <span className="mt-1 text-[0.7rem] opacity-70">{chip.month}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {activeDay && (
-        <div className="space-y-4">
-          <p className="text-sm text-ink-300">{formatLongDate(activeDay.slots[0].startsAt)}</p>
+        <div className="space-y-6">
+          <p className="font-serif text-lg italic text-char-soft">{formatLongDate(activeDay.slots[0].startsAt)}</p>
           {grouped.map((group) => (
-            <div key={group.label} className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">{group.label}</p>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            <div key={group.label} className="space-y-3">
+              <p className="label-caps flex items-center gap-3 text-char-mute">
+                {group.label}
+                <span className="h-px flex-1 bg-rule/70" aria-hidden />
+              </p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {group.slots.map((slot) => {
                   const isSelected = selected?.startsAt === slot.startsAt;
                   return (
@@ -148,10 +157,10 @@ export function SlotPicker({ serviceId, barberId, token, selected, onSelect, rel
                       aria-pressed={isSelected}
                       onClick={() => onSelect(slot)}
                       className={cn(
-                        "h-11 rounded-lg border text-sm font-medium transition",
+                        "h-11 border text-sm tabular-nums transition-colors",
                         isSelected
-                          ? "border-brass-400 bg-brass-400 text-ink-950"
-                          : "border-ink-800 bg-ink-900 hover:border-brass-500 hover:text-brass-300",
+                          ? "border-char bg-char text-paper-light"
+                          : "border-rule bg-paper-light/50 text-char hover:border-char",
                       )}
                     >
                       {formatTime(slot.startsAt)}

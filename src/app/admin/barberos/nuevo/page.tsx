@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Nuevo barbero" };
 export default function NewBarberPage() {
   return (
     <div className="mx-auto max-w-2xl">
-      <Link href="/admin/barberos" className="text-sm text-ink-500 hover:text-ink-100">
+      <Link href="/admin/barberos" className="text-sm text-char-mute hover:text-char">
         ← Barberos
       </Link>
       <PageTitle title="Nuevo barbero" description="Después de crearlo podrás definir sus horarios de trabajo." />

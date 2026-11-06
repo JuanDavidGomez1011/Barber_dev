@@ -82,22 +82,22 @@ async function Appointments({ searchParams }: Pick<PageProps<"/admin/citas">, "s
         </form>
       </Card>
 
-      <p className="text-sm text-ink-500">
+      <p className="text-sm text-char-mute">
         {total} {total === 1 ? "cita" : "citas"}
         {pages > 1 && ` · página ${filters.page} de ${pages}`}
       </p>
 
       {rows.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-ink-800 p-8 text-center text-sm text-ink-500">
+        <p className=" border border-dashed border-rule p-8 text-center text-sm text-char-mute">
           No hay citas con esos filtros.
         </p>
       ) : (
-        <ul className="divide-y divide-ink-800 overflow-hidden rounded-2xl border border-ink-800 bg-ink-900">
+        <ul className="divide-y divide-rule overflow-hidden border border-rule bg-paper-light">
           {rows.map((a) => (
             <li key={a.id} className="grid gap-2 p-4 md:grid-cols-[11rem_1fr_auto] md:items-center">
               <div>
                 <p className="font-medium">{formatLongDate(a.startsAt)}</p>
-                <p className="text-sm text-ink-500 tabular-nums">
+                <p className="text-sm text-char-mute tabular-nums">
                   {formatTime(a.startsAt)} – {formatTime(a.endsAt)}
                 </p>
               </div>
@@ -108,16 +108,16 @@ async function Appointments({ searchParams }: Pick<PageProps<"/admin/citas">, "s
                     href={`https://wa.me/${a.customer.phone.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-emerald-400 hover:underline"
+                    className="text-moss hover:underline"
                   >
                     {formatPhone(a.customer.phone)}
                   </a>
                 </p>
-                <p className="text-ink-500">
+                <p className="text-char-mute">
                   {a.service.name} · {a.barber.name} · {formatCop(a.priceCop)}
                 </p>
-                {a.note && <p className="truncate text-ink-500">“{a.note}”</p>}
-                {a.cancelReason && <p className="text-xs text-red-300/80">{a.cancelReason}</p>}
+                {a.note && <p className="truncate text-char-mute">“{a.note}”</p>}
+                {a.cancelReason && <p className="text-xs text-oxblood/80">{a.cancelReason}</p>}
               </div>
               <div className="flex flex-col items-start gap-2 md:items-end">
                 <StatusBadge status={a.status} />

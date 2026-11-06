@@ -32,7 +32,7 @@ export function AppointmentRowActions({ id, status, started }: { id: string; sta
           onChange={(e) => setReason(e.target.value)}
           maxLength={120}
           placeholder="Motivo (opcional)"
-          className="rounded-lg border border-ink-700 bg-ink-950 px-2 py-1 text-xs outline-none focus:border-brass-400"
+          className=" border border-rule bg-paper px-2 py-1 text-xs outline-none focus:border-char"
         />
         <button type="button" disabled={pending} onClick={() => run(() => adminCancelAction(id, reason))} className={`${buttonClass.danger} ${small}`}>
           {pending ? "…" : "Cancelar cita"}
@@ -40,7 +40,7 @@ export function AppointmentRowActions({ id, status, started }: { id: string; sta
         <button type="button" disabled={pending} onClick={() => setMode("idle")} className={`${buttonClass.secondary} ${small}`}>
           Volver
         </button>
-        {error && <span className="text-xs text-red-300">{error}</span>}
+        {error && <span className="text-xs text-oxblood">{error}</span>}
       </div>
     );
   }
@@ -67,7 +67,7 @@ export function AppointmentRowActions({ id, status, started }: { id: string; sta
           Deshacer
         </button>
       )}
-      {error && <span className="text-xs text-red-300">{error}</span>}
+      {error && <span className="text-xs text-oxblood">{error}</span>}
     </div>
   );
 }

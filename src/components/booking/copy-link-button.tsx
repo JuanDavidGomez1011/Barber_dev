@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { textLink } from "../public/ui";
 
 /** Copia la URL actual (sin parámetros) al portapapeles. */
 export function CopyLinkButton() {
@@ -19,9 +20,9 @@ export function CopyLinkButton() {
           window.prompt("Copia tu enlace:", url);
         }
       }}
-      className="rounded-full border border-ink-700 px-4 py-2 text-sm transition hover:border-brass-500"
+      className={textLink}
     >
-      {copied ? "¡Enlace copiado!" : "Copiar enlace"}
+      {copied ? "Enlace copiado" : "Copiar enlace"}
     </button>
   );
 }

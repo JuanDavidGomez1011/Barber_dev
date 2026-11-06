@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Editar barbero" };
 export default function EditBarberPage({ params, searchParams }: PageProps<"/admin/barberos/[id]">) {
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/admin/barberos" className="text-sm text-ink-500 hover:text-ink-100">
+      <Link href="/admin/barberos" className="text-sm text-char-mute hover:text-char">
         ← Barberos
       </Link>
       <Suspense fallback={<Skeleton className="mt-4 h-[40rem]" />}>
@@ -38,14 +38,14 @@ async function EditBarber({ params, searchParams }: PageProps<"/admin/barberos/[
       <PageTitle title={barber.name} description={`${pending} citas confirmadas próximas`} />
 
       {nuevo === "1" && (
-        <p className="rounded-xl border border-emerald-800 bg-emerald-950/50 p-3 text-sm text-emerald-200">
+        <p className=" border border-moss/40 bg-moss/10 p-3 text-sm text-moss">
           Barbero creado. Ahora define sus horarios de trabajo: sin horario no aparece en las reservas.
         </p>
       )}
 
       <Card>
-        <h2 className="mb-1 font-display text-xl font-semibold">Horario semanal</h2>
-        <p className="mb-4 text-sm text-ink-500">
+        <h2 className="mb-1 font-serif text-2xl tracking-tight">Horario semanal</h2>
+        <p className="mb-4 text-sm text-char-mute">
           Agrega un segundo turno el mismo día para un turno partido (ej: 9:00–13:00 y 14:00–19:00). El horario del local
           también limita las reservas.
         </p>
@@ -56,7 +56,7 @@ async function EditBarber({ params, searchParams }: PageProps<"/admin/barberos/[
       </Card>
 
       <Card>
-        <h2 className="mb-4 font-display text-xl font-semibold">Datos</h2>
+        <h2 className="mb-4 font-serif text-2xl tracking-tight">Datos</h2>
         <ActionForm action={updateBarberAction}>
           <BarberFields
             b={{
@@ -76,7 +76,7 @@ async function EditBarber({ params, searchParams }: PageProps<"/admin/barberos/[
 
       {barber.user && (
         <Card>
-          <h2 className="mb-4 font-display text-xl font-semibold">Cambiar contraseña</h2>
+          <h2 className="mb-4 font-serif text-2xl tracking-tight">Cambiar contraseña</h2>
           <ActionForm action={setBarberPasswordAction} submitLabel="Cambiar contraseña" resetOnSuccess>
             <input type="hidden" name="id" value={barber.id} />
             <Field label="Nueva contraseña" hint="Mínimo 8 caracteres" className="max-w-sm">

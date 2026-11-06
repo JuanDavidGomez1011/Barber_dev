@@ -2,37 +2,37 @@
 import { cn } from "@/lib/cn";
 
 export const inputClass =
-  "w-full rounded-xl border border-ink-800 bg-ink-950 px-3 py-2.5 text-base text-ink-100 outline-none transition placeholder:text-ink-500 focus:border-brass-400 [color-scheme:dark]";
+  "w-full border border-rule bg-paper-light px-3 py-2.5 text-base text-char outline-none transition-colors placeholder:text-char-mute/70 focus:border-char";
 
 export function Field({ label, hint, children, className }: { label: string; hint?: string; children: React.ReactNode; className?: string }) {
   return (
-    <label className={cn("block space-y-1", className)}>
-      <span className="text-sm text-ink-300">{label}</span>
+    <label className={cn("block space-y-1.5", className)}>
+      <span className="label-caps block text-char-soft">{label}</span>
       {children}
-      {hint && <span className="block text-xs text-ink-500">{hint}</span>}
+      {hint && <span className="block text-xs text-char-mute">{hint}</span>}
     </label>
   );
 }
 
 export function Checkbox({ name, label, defaultChecked }: { name: string; label: string; defaultChecked?: boolean }) {
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="size-4 accent-brass-400" />
+    <label className="flex items-center gap-2.5 text-sm">
+      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="size-4 accent-char" />
       {label}
     </label>
   );
 }
 
 export function Card({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <section className={cn("rounded-2xl border border-ink-800 bg-ink-900 p-4", className)}>{children}</section>;
+  return <section className={cn("border border-rule bg-paper-light p-5", className)}>{children}</section>;
 }
 
 export function PageTitle({ title, description, action }: { title: string; description?: string; action?: React.ReactNode }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-char pb-5">
       <div>
-        <h1 className="font-display text-2xl font-semibold">{title}</h1>
-        {description && <p className="mt-1 text-sm text-ink-500">{description}</p>}
+        <h1 className="font-serif text-[2.2rem] leading-tight tracking-tight">{title}</h1>
+        {description && <p className="mt-1.5 max-w-xl text-sm text-char-mute">{description}</p>}
       </div>
       {action}
     </div>
@@ -40,14 +40,14 @@ export function PageTitle({ title, description, action }: { title: string; descr
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-2xl bg-ink-900", className ?? "h-64")} />;
+  return <div className={cn("animate-pulse bg-paper-deep/60", className ?? "h-64")} />;
 }
 
 export const buttonClass = {
   primary:
-    "rounded-full bg-brass-400 px-5 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-brass-300 disabled:opacity-60",
+    "inline-flex items-center justify-center gap-2 bg-char px-5 py-2.5 text-sm font-medium text-paper-light transition-colors hover:bg-oxblood disabled:opacity-50",
   secondary:
-    "rounded-full border border-ink-700 px-4 py-2 text-sm font-medium text-ink-100 transition hover:border-brass-500 disabled:opacity-60",
+    "inline-flex items-center justify-center gap-2 border border-char/70 px-4 py-2 text-sm font-medium text-char transition-colors hover:bg-char hover:text-paper-light disabled:opacity-50",
   danger:
-    "rounded-full border border-red-900 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-950 disabled:opacity-60",
+    "inline-flex items-center justify-center gap-2 border border-oxblood/60 px-4 py-2 text-sm font-medium text-oxblood transition-colors hover:bg-oxblood hover:text-paper-light disabled:opacity-50",
 };

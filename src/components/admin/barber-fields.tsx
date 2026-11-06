@@ -51,19 +51,19 @@ export function BarberFields({
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="mb-1 text-sm text-ink-300">Servicios que presta</legend>
+        <legend className="mb-1 text-sm text-char-soft">Servicios que presta</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           {services.map((s) => (
-            <label key={s.id} className="flex items-center gap-2 rounded-xl border border-ink-800 px-3 py-2 text-sm">
+            <label key={s.id} className="flex items-center gap-2 border border-rule px-3 py-2 text-sm">
               <input
                 type="checkbox"
                 name="serviceIds"
                 value={s.id}
                 defaultChecked={b.serviceIds?.includes(s.id) ?? true}
-                className="size-4 accent-brass-400"
+                className="size-4 accent-char"
               />
               {s.name}
-              {!s.active && <span className="text-xs text-ink-500">(oculto)</span>}
+              {!s.active && <span className="text-xs text-char-mute">(oculto)</span>}
             </label>
           ))}
         </div>
