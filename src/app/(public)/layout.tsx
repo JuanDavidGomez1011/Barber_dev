@@ -27,6 +27,11 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
           {business.name} · {business.city}
           {business.address ? ` · ${business.address}` : ""}
         </p>
+        <p className="mt-2">
+          <Link href="/login" className="text-ink-500 underline-offset-4 transition hover:text-ink-300 hover:underline">
+            Acceso del equipo
+          </Link>
+        </p>
       </footer>
     </>
   );
