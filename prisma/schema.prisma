@@ -1,0 +1,230 @@
+// Esquema de datos del sistema de reservas.
+// Convenciones:
+// - Instantes (citas, bloqueos, notificaciones) en UTC con `timestamptz`.
+// - Horarios semanales en "minutos desde medianoche" en la zona del negocio
+//   (America/Bogota). Ej: 540 = 09:00, 1200 = 20:00.
+// - Dinero en pesos colombianos enteros (COP no usa centavos).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  BARBER
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+enum NotificationType {
+  CONFIRMATION
+  REMINDER_24H
+  REMINDER_2H
+  CANCELLATION
+  RESCHEDULE
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+// ---------- Configuración del negocio ----------
+
+/// Fila única (id = 1). Reglas de negocio editables desde el panel.
+model BusinessSettings {
+  id                  Int      @id @default(1)
+  name                String
+  city                String
+  address             String?
+  whatsapp            String?
+  timezone            String   @default("America/Bogota")
+  currency            String   @default("COP")
+  /// Anticipación mínima para reservar.
+  minLeadMinutes      Int      @default(120)
+  /// Cancelar o reprogramar se permite hasta este tiempo antes de la cita.
+  cancelLimitMinutes  Int      @default(180)
+  slotIntervalMinutes Int      @default(15)
+  /// Cuántos días hacia adelante se puede reservar.
+  bookingHorizonDays  Int      @default(30)
+  updatedAt           DateTime @updatedAt
+}
+
+/// Horario de atención del local (límite exterior para todos los barberos).
+model BusinessHours {
+  /// 0 = domingo … 6 = sábado
+  dayOfWeek   Int     @id
+  isClosed    Boolean @default(false)
+  openMinute  Int
+  closeMinute Int
+}
+
+/// Festivos o días en que el local no abre.
+model ClosedDay {
+  id     String   @id @default(cuid())
+  date   DateTime @unique @db.Date
+  reason String?
+}
+
+// ---------- Personas ----------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  active       Boolean  @default(true)
+  barber       Barber?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Barber {
+  id           String          @id @default(cuid())
+  userId       String?         @unique
+  user         User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name         String
+  slug         String          @unique
+  photoUrl     String?
+  bio          String?
+  active       Boolean         @default(true)
+  sortOrder    Int             @default(0)
+  services     BarberService[]
+  workingHours WorkingHours[]
+  timeBlocks   TimeBlock[]
+  appointments Appointment[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+/// Cliente sin cuenta, identificado por su WhatsApp.
+model Customer {
+  id           String        @id @default(cuid())
+  name         String
+  /// Formato E.164, ej: +573001234567
+  phone        String        @unique
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// ---------- Catálogo ----------
+
+model Service {
+  id           String          @id @default(cuid())
+  name         String
+  description  String?
+  durationMin  Int
+  priceCop     Int
+  active       Boolean         @default(true)
+  sortOrder    Int             @default(0)
+  barbers      BarberService[]
+  appointments Appointment[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+/// Qué servicios presta cada barbero.
+model BarberService {
+  barberId  String
+  serviceId String
+  barber    Barber  @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([barberId, serviceId])
+}
+
+// ---------- Disponibilidad ----------
+
+/// Turnos semanales del barbero. Varias filas por día = turno partido.
+model WorkingHours {
+  id          String @id @default(cuid())
+  barberId    String
+  barber      Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int
+  startMinute Int
+  endMinute   Int
+
+  @@index([barberId, dayOfWeek])
+}
+
+/// Bloqueo puntual: almuerzo, permiso, cita médica, etc.
+model TimeBlock {
+  id        String   @id @default(cuid())
+  barberId  String
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  startsAt  DateTime @db.Timestamptz(3)
+  endsAt    DateTime @db.Timestamptz(3)
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([barberId, startsAt])
+}
+
+// ---------- Citas ----------
+
+/// La restricción `appointment_no_overlap` (EXCLUDE USING gist) se define en
+/// la migración SQL: impide en la base de datos que dos citas activas del
+/// mismo barbero se crucen, incluso con peticiones simultáneas.
+model Appointment {
+  id              String            @id @default(cuid())
+  barberId        String
+  serviceId       String
+  customerId      String
+  barber          Barber            @relation(fields: [barberId], references: [id], onDelete: Restrict)
+  service         Service           @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  customer        Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  startsAt        DateTime          @db.Timestamptz(3)
+  endsAt          DateTime          @db.Timestamptz(3)
+  status          AppointmentStatus @default(CONFIRMED)
+  /// Copia del precio y la duración al momento de reservar.
+  priceCop        Int
+  durationMin     Int
+  note            String?
+  /// SHA-256 del token del enlace de gestión (el token en claro solo va en el enlace).
+  manageTokenHash String            @unique
+  /// El cliente eligió "cualquiera disponible".
+  anyBarber       Boolean           @default(false)
+  cancelledAt     DateTime?
+  cancelReason    String?
+  rescheduleCount Int               @default(0)
+  notifications   Notification[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([barberId, startsAt])
+  @@index([startsAt, status])
+  @@index([customerId])
+}
+
+/// Cola de notificaciones. Un proceso periódico envía las PENDING vencidas.
+model Notification {
+  id            String             @id @default(cuid())
+  appointmentId String
+  appointment   Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  type          NotificationType
+  channel       String             @default("WHATSAPP")
+  scheduledFor  DateTime           @db.Timestamptz(3)
+  status        NotificationStatus @default(PENDING)
+  attempts      Int                @default(0)
+  sentAt        DateTime?
+  error         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@unique([appointmentId, type])
+  @@index([status, scheduledFor])
+}

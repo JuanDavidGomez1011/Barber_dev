@@ -1,26 +1,36 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+
+  /* Paleta: carbón cálido + acento latón */
+  --color-ink-950: #0c0a09;
+  --color-ink-900: #171412;
+  --color-ink-800: #241f1b;
+  --color-ink-700: #3a322b;
+  --color-ink-500: #8a7f74;
+  --color-ink-300: #c9bfb4;
+  --color-ink-100: #f3eee8;
+  --color-brass-300: #f0cf8e;
+  --color-brass-400: #e3b35f;
+  --color-brass-500: #c9963f;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink-950);
+  color: var(--color-ink-100);
+}
+
+/* Barra de días con scroll horizontal sin barra visible */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
