@@ -16,7 +16,7 @@
     "db:studio": "prisma studio",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test:race": "tsx --conditions=react-server scripts/race-test.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "db:bootstrap": "tsx scripts/bootstrap.ts",
@@ -56,5 +56,10 @@
     "@prisma/engines@7.10.1": true,
     "esbuild@0.28.2": true,
     "prisma@7.10.1": true
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    }
   }
 }

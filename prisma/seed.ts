@@ -121,9 +121,34 @@ const DEMO_TOKEN = "demo-cita-ejemplo";
 
 // ------------------------------------------------------------------ seed
 
+/**
+ * Segunda barrera, además de NODE_ENV (que en local casi nunca está definido):
+ * si la base tiene usuarios que no son los de ejemplo (p. ej. el admin real que
+ * crea `admin:create`), probablemente es producción y no se borra nada.
+ */
+async function assertLooksLikeDevDatabase() {
+  if (process.env.ALLOW_SEED === "true") return;
+  const realUsers = await db.user.findMany({
+    where: { NOT: { email: { endsWith: "@barberia.local" } } },
+    select: { email: true },
+    take: 3,
+  });
+  if (realUsers.length > 0) {
+    console.error(
+      `Esta base tiene usuarios reales (${realUsers.map((u) => u.email).join(", ")}). ` +
+        "El seed borraría todo, así que no se corrió.\n" +
+        "Revisa que DATABASE_URL/DIRECT_URL apunten a la base de desarrollo. " +
+        "Si de verdad quieres borrarla, corre de nuevo con ALLOW_SEED=true.",
+    );
+    process.exit(1);
+  }
+}
+
 async function main() {
+  await assertLooksLikeDevDatabase();
   console.log("Limpiando datos…");
   await db.$transaction([
+    db.loginAttempt.deleteMany(),
     db.notification.deleteMany(),
     db.appointment.deleteMany(),
     db.timeBlock.deleteMany(),

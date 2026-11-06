@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { pruneLoginAttempts } from "@/server/auth/login-limit";
 import { processDue } from "@/server/notifications/service";
 
 /**
@@ -27,5 +28,12 @@ export async function GET() {
     for (const k of Object.keys(total) as (keyof typeof total)[]) total[k] += batch[k];
     if (batch.claimed < 25) break;
   }
-  return Response.json({ ok: true, ...total }, { headers: { "Cache-Control": "no-store" } });
+
+  // Limpieza de paso: intentos de login que ya no cuentan para el límite.
+  const prunedLoginAttempts = await pruneLoginAttempts().catch((e) => {
+    console.error("[cron] limpieza de intentos de login", e);
+    return 0;
+  });
+
+  return Response.json({ ok: true, ...total, prunedLoginAttempts }, { headers: { "Cache-Control": "no-store" } });
 }

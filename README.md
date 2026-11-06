@@ -103,6 +103,8 @@ Entra en http://localhost:3000/login con un usuario barbero (ver [Usuarios de ej
 
 **Autenticación** ([`src/server/auth`](src/server/auth)): cookie de sesión firmada (JWT con `jose`, `httpOnly`, 7 días). [`proxy.ts`](src/proxy.ts) solo redirige rápido según la cookie; cada página y acción verifica de nuevo con `requireBarber()` / `requireAdmin()`, que consulta que el usuario siga activo. Un barbero solo puede ver y modificar sus propias citas y bloqueos.
 
+**Límite de intentos** ([`login-limit.ts`](src/lib/auth/login-limit.ts)): 5 contraseñas fallidas por correo o 20 por IP en 15 minutos bloquean el login hasta que pase la ventana (aunque luego se escriba la contraseña correcta). Los intentos se guardan en la tabla `LoginAttempt`, porque en Vercel cada petición puede caer en una instancia distinta; un login correcto borra los fallos de ese correo y el cron limpia las filas de más de 24 h.
+
 ## Panel de administración
 
 Entra con `admin@barberia.local` (en producción, crea tu propio admin: ver abajo).
@@ -177,7 +179,7 @@ Para agregar otro proveedor: implementa la interfaz `NotificationProvider` ([`pr
 |---|---|
 | `db:migrate` | Crea o aplica migraciones en desarrollo |
 | `db:deploy` | Aplica migraciones en producción |
-| `db:seed` | Carga los datos de ejemplo (borra los existentes) |
+| `db:seed` | Carga los datos de ejemplo (borra los existentes). Se niega a correr si la base tiene usuarios que no son `@barberia.local`, salvo con `ALLOW_SEED=true` |
 | `db:reset` | Borra la base, migra y siembra |
 | `db:studio` | Abre Prisma Studio |
 | `test` | Corre los tests (Vitest) |

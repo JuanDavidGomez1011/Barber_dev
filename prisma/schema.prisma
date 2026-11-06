@@ -235,3 +235,16 @@ model Notification {
   @@unique([appointmentId, type])
   @@index([status, scheduledFor])
 }
+
+// ---------- Seguridad ----------
+
+/// Intentos fallidos de inicio de sesión, para frenar a quien prueba contraseñas.
+/// `key` es "email:<correo>" o "ip:<dirección>". Las filas viejas las borra el cron.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([key, createdAt])
+  @@index([createdAt])
+}
