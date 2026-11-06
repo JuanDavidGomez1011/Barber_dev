@@ -36,6 +36,8 @@ enum NotificationType {
 
 enum NotificationStatus {
   PENDING
+  /// Tomada por un proceso de envío (evita mandarla dos veces si hay dos en paralelo).
+  SENDING
   SENT
   FAILED
   CANCELLED
@@ -196,6 +198,9 @@ model Appointment {
   note            String?
   /// SHA-256 del token del enlace de gestión (el token en claro solo va en el enlace).
   manageTokenHash String            @unique
+  /// Token cifrado (AES-256-GCM) para volver a armar el enlace en los recordatorios.
+  /// Sin la clave del servidor no sirve de nada.
+  manageTokenEnc  String?
   /// El cliente eligió "cualquiera disponible".
   anyBarber       Boolean           @default(false)
   cancelledAt     DateTime?
@@ -212,18 +217,20 @@ model Appointment {
 
 /// Cola de notificaciones. Un proceso periódico envía las PENDING vencidas.
 model Notification {
-  id            String             @id @default(cuid())
-  appointmentId String
-  appointment   Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  type          NotificationType
-  channel       String             @default("WHATSAPP")
-  scheduledFor  DateTime           @db.Timestamptz(3)
-  status        NotificationStatus @default(PENDING)
-  attempts      Int                @default(0)
-  sentAt        DateTime?
-  error         String?
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+  id                String             @id @default(cuid())
+  appointmentId     String
+  appointment       Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  type              NotificationType
+  channel           String             @default("WHATSAPP")
+  scheduledFor      DateTime           @db.Timestamptz(3)
+  status            NotificationStatus @default(PENDING)
+  attempts          Int                @default(0)
+  sentAt            DateTime?
+  /// ID que devuelve el proveedor (Twilio SID, ID de WhatsApp Cloud…).
+  providerMessageId String?
+  error             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   @@unique([appointmentId, type])
   @@index([status, scheduledFor])

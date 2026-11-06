@@ -16,6 +16,8 @@ import {
   zonedToUtc,
   type DateISO,
 } from "../src/lib/time";
+import { encryptToken } from "../src/lib/crypto";
+import { planReminders } from "../src/lib/notifications/rules";
 import { generateManageToken, hashToken } from "../src/lib/tokens";
 
 if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED !== "true") {
@@ -277,12 +279,12 @@ async function main() {
           }
 
           // La primera cita futura confirmada usa el token de demostración.
-          let tokenHash: string;
+          let token: string;
           if (!demoAssigned && status === "CONFIRMED" && offset >= 1) {
-            tokenHash = hashToken(DEMO_TOKEN);
+            token = DEMO_TOKEN;
             demoAssigned = true;
           } else {
-            tokenHash = generateManageToken().hash;
+            token = generateManageToken().token;
           }
 
           const customer = pick(customers);
@@ -296,7 +298,9 @@ async function main() {
             priceCop: service.priceCop,
             durationMin: service.durationMin,
             note: pick(NOTES),
-            manageTokenHash: tokenHash,
+            manageTokenHash: hashToken(token),
+            // Cifrado para que los recordatorios puedan incluir el enlace.
+            manageTokenEnc: encryptToken(token),
             anyBarber: rand() < 0.25,
             cancelledAt: status === "CANCELLED" ? new Date(startsAt.getTime() - 5 * 3600_000) : null,
             cancelReason: status === "CANCELLED" ? "Cancelada por el cliente" : null,
@@ -309,7 +313,37 @@ async function main() {
   }
 
   // Inserción en lote: una sola consulta en vez de cientos (la base está en la nube).
-  await db.appointment.createMany({ data: appointments });
+  const created = await db.appointment.createManyAndReturn({
+    data: appointments,
+    select: { id: true, startsAt: true, status: true, createdAt: true, cancelledAt: true },
+  });
+
+  // ---- Historial de notificaciones (WhatsApp simulado)
+  console.log("Notificaciones…");
+  const notifications: Prisma.NotificationCreateManyInput[] = [];
+  for (const a of created) {
+    notifications.push({ appointmentId: a.id, type: "CONFIRMATION", scheduledFor: a.createdAt, status: "SENT", sentAt: a.createdAt, attempts: 1 });
+    // Recordatorios: los que ya debían salir quedan enviados; los futuros, pendientes.
+    for (const r of planReminders(a.startsAt, a.createdAt)) {
+      const due = r.scheduledFor <= now;
+      if (a.status === "CANCELLED" && a.cancelledAt && r.scheduledFor >= a.cancelledAt) {
+        notifications.push({ appointmentId: a.id, type: r.type, scheduledFor: r.scheduledFor, status: "CANCELLED", error: "La cita se canceló" });
+      } else {
+        notifications.push({
+          appointmentId: a.id,
+          type: r.type,
+          scheduledFor: r.scheduledFor,
+          status: due ? "SENT" : "PENDING",
+          sentAt: due ? r.scheduledFor : null,
+          attempts: due ? 1 : 0,
+        });
+      }
+    }
+    if (a.status === "CANCELLED" && a.cancelledAt) {
+      notifications.push({ appointmentId: a.id, type: "CANCELLATION", scheduledFor: a.cancelledAt, status: "SENT", sentAt: a.cancelledAt, attempts: 1 });
+    }
+  }
+  await db.notification.createMany({ data: notifications });
 
   const counts = appointments.reduce<Record<string, number>>((acc, a) => {
     acc[a.status as string] = (acc[a.status as string] ?? 0) + 1;
@@ -320,6 +354,7 @@ async function main() {
   console.log(`  Servicios: ${SERVICES.length} · Barberos: ${BARBERS.length} · Clientes: ${customers.length}`);
   console.log(`  Bloqueos: ${blocks.length} · Festivos: ${HOLIDAYS.length}`);
   console.log(`  Citas: ${appointments.length}`, counts);
+  console.log(`  Notificaciones: ${notifications.length} (${notifications.filter((n) => n.status === "PENDING").length} pendientes)`);
   console.log("\n  Accesos (contraseña: SEED_PASSWORD del .env):");
   console.log("   admin@barberia.local  (administrador)");
   for (const b of BARBERS) console.log(`   ${b.email}  (barbero)`);

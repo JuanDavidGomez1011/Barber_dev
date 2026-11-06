@@ -1,9 +1,9 @@
 import "server-only";
-import type { Prisma } from "@/generated/prisma/client";
 import { pickLeastBusyBarber } from "@/lib/availability/compute-slots";
 import { addDaysISO, toDateISO, toMinuteOfDay, zonedToUtc } from "@/lib/time";
+import { encryptToken } from "@/lib/crypto";
 import { generateManageToken, hashToken } from "@/lib/tokens";
-import { db } from "../db";
+import { db, type DbTx } from "../db";
 import { BLOCKING_STATUSES, getAvailability } from "./availability.service";
 
 /** Máximo de citas futuras activas por número de WhatsApp (evita abusos). */
@@ -43,7 +43,7 @@ const TX_OPTIONS = { maxWait: 10_000, timeout: 20_000 } as const;
  * Dos reservas simultáneas para el mismo barbero esperan su turno; la segunda
  * vuelve a calcular la disponibilidad y ve la cita de la primera.
  */
-async function withBarberLock<T>(barberId: string, fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+async function withBarberLock<T>(barberId: string, fn: (tx: DbTx) => Promise<T>): Promise<T> {
   return db.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${barberId}))`;
     return fn(tx);
@@ -52,7 +52,7 @@ async function withBarberLock<T>(barberId: string, fn: (tx: Prisma.TransactionCl
 
 /** ¿El horario sigue libre para ese barbero? Se calcula con datos frescos dentro de la transacción. */
 async function isSlotFree(
-  tx: Prisma.TransactionClient,
+  tx: DbTx,
   args: { serviceId: string; barberId: string; startsAt: Date; timezone: string; excludeAppointmentId?: string; now: Date },
 ): Promise<boolean> {
   const date = toDateISO(args.startsAt, args.timezone);
@@ -123,7 +123,7 @@ async function candidateBarbers(args: {
  */
 async function tryCandidates<T>(
   candidates: string[],
-  attempt: (barberId: string, tx: Prisma.TransactionClient) => Promise<T | null>,
+  attempt: (barberId: string, tx: DbTx) => Promise<T | null>,
 ): Promise<T> {
   for (const barberId of candidates) {
     try {
@@ -190,6 +190,7 @@ export async function createBooking(data: CreateBookingData, now = new Date()) {
         durationMin: service.durationMin,
         note: data.note,
         manageTokenHash: hash,
+        manageTokenEnc: encryptToken(token),
         anyBarber: data.barberId === null,
       },
     });

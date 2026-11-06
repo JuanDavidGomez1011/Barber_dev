@@ -54,14 +54,21 @@ export type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>
 /** Exige un usuario con sesión; si no hay, redirige al login. */
 export async function requireUser() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) {
+    // Con cookie pero sin usuario válido (borrado o desactivado): hay que borrar la
+    // cookie, o el proxy devolvería al panel y se formaría un bucle de redirecciones.
+    const hasCookie = (await cookies()).has(SESSION_COOKIE);
+    redirect(hasCookie ? "/api/auth/salir" : "/login");
+  }
   return user;
 }
 
 /** Exige un barbero con perfil activo. Devuelve el usuario y su perfil de barbero. */
 export async function requireBarber() {
   const user = await requireUser();
-  if (user.role !== "BARBER" || !user.barber?.active) redirect(user.role === "ADMIN" ? "/admin" : "/login");
+  if (user.role === "ADMIN") redirect("/admin");
+  // Barbero sin perfil activo: se cierra la sesión (ir a /login a secas haría bucle con el proxy).
+  if (!user.barber?.active) redirect("/api/auth/salir");
   return { user, barber: user.barber };
 }
 

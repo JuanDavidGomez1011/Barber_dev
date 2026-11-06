@@ -1,5 +1,5 @@
 import "server-only";
-import type { Prisma, PrismaClient } from "@/generated/prisma/client";
+import type { DbClient, DbTx } from "../db";
 import {
   computeBarberSlots,
   mergeBarberSlots,
@@ -17,7 +17,7 @@ import {
 } from "@/lib/time";
 
 /** Funciona con el cliente normal o dentro de una transacción. */
-type Db = PrismaClient | Prisma.TransactionClient;
+type Db = DbClient | DbTx;
 
 /** Estados que ocupan el horario del barbero (igual que la restricción EXCLUDE). */
 export const BLOCKING_STATUSES = ["CONFIRMED", "COMPLETED"] as const;

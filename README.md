@@ -5,7 +5,7 @@ Reservas web para una barbería: los clientes reservan desde el celular sin crea
 **Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · PostgreSQL (Supabase) · Prisma 7 · Zod · Vitest
 **Configuración regional:** español · pesos colombianos (COP) · `America/Bogota`
 
-> Estado: **Fase 3 completa** (modelo de datos, reservas del cliente y panel del barbero). Siguen: panel de administración y notificaciones.
+> Estado: **las 5 fases completas**: modelo de datos, reservas, panel del barbero, panel de administración y notificaciones por WhatsApp (simuladas hasta conectar un proveedor).
 
 ## Requisitos
 
@@ -103,12 +103,73 @@ Entra en http://localhost:3000/login con un usuario barbero (ver [Usuarios de ej
 
 **Autenticación** ([`src/server/auth`](src/server/auth)): cookie de sesión firmada (JWT con `jose`, `httpOnly`, 7 días). [`proxy.ts`](src/proxy.ts) solo redirige rápido según la cookie; cada página y acción verifica de nuevo con `requireBarber()` / `requireAdmin()`, que consulta que el usuario siga activo. Un barbero solo puede ver y modificar sus propias citas y bloqueos.
 
+## Panel de administración
+
+Entra con `admin@barberia.local` (en producción, crea tu propio admin: ver abajo).
+
+| Ruta | Qué hace |
+|---|---|
+| `/admin` | Resumen: ingresos estimados de la semana, citas de hoy, tasa de inasistencia (30 días), citas por día y servicios más pedidos |
+| `/admin/citas` | Lista con filtros (fechas, barbero, estado, cliente por nombre o teléfono) y paginación. Marcar estados o cancelar con motivo |
+| `/admin/calendario` | Vista del día con una columna por barbero: turnos, citas y bloqueos |
+| `/admin/servicios` | Crear, editar, ocultar o borrar servicios (los que tienen historial solo se ocultan) |
+| `/admin/barberos` | Crear barberos con su acceso, servicios que prestan, horario semanal (turnos partidos) y contraseña |
+| `/admin/horarios` | Horario de atención del local y festivos / días cerrados (avisa si ese día hay citas) |
+| `/admin/ajustes` | Nombre, ciudad, dirección y WhatsApp del negocio; reglas de reserva (anticipación, límite para cancelar, intervalo, días hacia adelante) |
+
+Las métricas del resumen se calculan en una función pura con tests ([`stats.ts`](src/lib/dashboard/stats.ts)). Al editar servicios, barberos o ajustes se invalida la caché del catálogo público (`updateTag`), así que el sitio muestra los cambios de inmediato.
+
+### Crear el administrador real
+
+```bash
+npm run admin:create -- --email dueno@tubarberia.com --name "Tu nombre"
+```
+
+Si defines `ADMIN_PASSWORD` se usa esa contraseña; si no, se genera una y se muestra una sola vez.
+
+## Notificaciones por WhatsApp
+
+| Evento | Mensaje |
+|---|---|
+| Reserva | Confirmación inmediata con el enlace para cancelar o reprogramar |
+| 24 h y 2 h antes | Recordatorios (se omiten si saldrían casi junto con la confirmación) |
+| Reprogramación | Aviso inmediato; los recordatorios se recalculan para la nueva hora |
+| Cancelación (cliente o barbería) | Aviso inmediato; los recordatorios pendientes se descartan |
+
+**Cómo funciona** ([`src/server/notifications`](src/server/notifications)):
+
+- Cada evento deja filas en la tabla `Notification` (una por cita y tipo). Los mensajes inmediatos se envían justo después de responder al usuario (`after()`); los recordatorios y reintentos los envía el cron.
+- El envío **reclama** cada notificación con `FOR UPDATE SKIP LOCKED`: aunque el cron y un envío inmediato coincidan, ningún mensaje sale dos veces (`npm run test:notifications-race`).
+- Errores temporales se reintentan (5 y 10 min después, hasta 3 intentos); los mensajes que ya no tienen sentido (cita cancelada, recordatorio atrasado) se descartan.
+- Los recordatorios incluyen el enlace de gestión: la cita guarda una **copia cifrada** del token (AES-256-GCM, clave `TOKEN_SECRET`/`SESSION_SECRET`); en la base nunca está el token en claro.
+- Panel: **Admin → Notificaciones** muestra la cola, el texto de cada mensaje, errores, reintentos y un botón para enviar los pendientes ya.
+- Textos: [`src/lib/notifications/templates.ts`](src/lib/notifications/templates.ts).
+
+**Proveedor** (`NOTIFICATIONS_PROVIDER`):
+
+| Valor | Qué hace |
+|---|---|
+| `console` (por defecto) | Simulado: escribe cada mensaje en los logs del servidor |
+| `twilio` | Twilio WhatsApp. Variables `TWILIO_*` (ver `.env.example`). Texto libre en el sandbox; en producción, plantillas con `TWILIO_CONTENT_SID_<TIPO>` |
+| `whatsapp-cloud` | API oficial de Meta. Variables `WHATSAPP_*`. Requiere plantillas aprobadas por Meta (una por tipo de mensaje, con las variables `{{1}}`, `{{2}}`… en el orden que entrega `templates.ts`) |
+
+Para agregar otro proveedor: implementa la interfaz `NotificationProvider` ([`provider.ts`](src/server/notifications/provider.ts)) y regístrala en [`index.ts`](src/server/notifications/index.ts).
+
+**Cron cada 5 minutos.** `GET /api/cron/notifications` con el encabezado `Authorization: Bearer <CRON_SECRET>`. El cron de Vercel en el plan Hobby solo corre una vez al día, así que el repo trae [`.github/workflows/notifications-cron.yml`](.github/workflows/notifications-cron.yml): define en GitHub los secretos `APP_URL` y `CRON_SECRET` y empieza a correr solo. Alternativa más puntual: [cron-job.org](https://cron-job.org) con la misma URL y encabezado. En local puedes llamarlo a mano: `curl http://localhost:3000/api/cron/notifications`.
+
 ## Despliegue (Vercel + Supabase)
 
 1. Crea el proyecto de producción en Supabase y copia sus dos URLs, igual que en [Crear la base de datos](#crear-la-base-de-datos-en-supabase).
-2. Aplica las migraciones con esas variables: `npm run db:deploy`. No corras el seed en producción.
-3. Importa el repositorio en Vercel y define las mismas variables de entorno, incluida `SESSION_SECRET` (genera una nueva para producción).
-4. Elige la región de Supabase más cercana a tus usuarios y a la región de funciones de Vercel (para Colombia: `us-east-1`). Cada conexión nueva a una región lejana tarda casi un segundo.
+2. Con esas variables en `.env`, prepara la base (sin datos de ejemplo; **no corras el seed en producción**, borra todo):
+   ```bash
+   npm run db:deploy        # crea las tablas
+   npm run db:bootstrap     # ajustes y horario del local
+   npm run admin:create -- --email dueno@tubarberia.com --name "Tu nombre"
+   ```
+   Luego entra a `/admin` y crea servicios, barberos y horarios.
+3. Importa el repositorio en Vercel y define las mismas variables de entorno: `DATABASE_URL`, `DIRECT_URL`, `SESSION_SECRET` y `CRON_SECRET` (genera valores nuevos para producción), `APP_URL` con tu dominio, y las del proveedor de WhatsApp cuando lo conectes.
+4. En GitHub, agrega los secretos `APP_URL` y `CRON_SECRET` para activar el cron de recordatorios.
+5. Elige la región de Supabase más cercana a tus usuarios y a la región de funciones de Vercel (para Colombia: `us-east-1`). Cada conexión nueva a una región lejana tarda casi un segundo.
 
 ## Scripts
 
@@ -121,4 +182,7 @@ Entra en http://localhost:3000/login con un usuario barbero (ver [Usuarios de ej
 | `db:studio` | Abre Prisma Studio |
 | `test` | Corre los tests (Vitest) |
 | `test:race` | Prueba de reservas simultáneas contra la base de datos de `.env` |
+| `admin:create` | Crea o actualiza un usuario administrador |
+| `test:notifications-race` | Prueba que el envío concurrente no duplica mensajes (base de `.env`) |
+| `db:bootstrap` | Prepara una base nueva con los ajustes y el horario del local (no borra nada) |
 | `typecheck` | Revisa los tipos con TypeScript |

@@ -6,13 +6,8 @@ import { cn } from "@/lib/cn";
 
 export type NavItem = { href: string; label: string };
 
-export function StaffNav({ items }: { items: NavItem[] }) {
-  const pathname = usePathname();
-  // La ruta más específica que coincide es la activa (/barbero no se marca en /barbero/semana).
-  const active = [...items]
-    .sort((a, b) => b.href.length - a.href.length)
-    .find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`))?.href;
-
+/** Enlaces de navegación; `active` es la ruta resaltada (si se conoce). */
+export function NavLinks({ items, active }: { items: NavItem[]; active?: string }) {
   return (
     <nav className="no-scrollbar mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 pb-2">
       {items.map((item) => (
@@ -29,4 +24,14 @@ export function StaffNav({ items }: { items: NavItem[] }) {
       ))}
     </nav>
   );
+}
+
+/** Lee la URL actual: en rutas dinámicas debe ir dentro de <Suspense> (fallback: NavLinks sin resaltar). */
+export function StaffNav({ items }: { items: NavItem[] }) {
+  const pathname = usePathname();
+  // La ruta más específica que coincide es la activa (/barbero no se marca en /barbero/semana).
+  const active = [...items]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`))?.href;
+  return <NavLinks items={items} active={active} />;
 }

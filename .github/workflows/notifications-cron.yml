@@ -1,0 +1,34 @@
+# Llama cada 5 minutos al endpoint que envía los recordatorios de WhatsApp.
+# (El cron de Vercel en el plan Hobby solo corre una vez al día.)
+#
+# Configura en GitHub → Settings → Secrets and variables → Actions:
+#   APP_URL      URL pública del sitio, ej. https://mi-barberia.vercel.app
+#   CRON_SECRET  el mismo valor que la variable CRON_SECRET en Vercel
+# Mientras no existan, el job se salta sin fallar.
+#
+# Nota: GitHub puede retrasar los cron programados varios minutos en horas pico;
+# para algo más puntual usa cron-job.org con la misma URL y encabezado.
+name: Enviar notificaciones
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      APP_URL: ${{ secrets.APP_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Llamar al endpoint
+        if: env.APP_URL != '' && env.CRON_SECRET != ''
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 60 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/notifications"
+      - name: Sin configurar
+        if: env.APP_URL == '' || env.CRON_SECRET == ''
+        run: echo "Faltan los secretos APP_URL y/o CRON_SECRET; no se envía nada."

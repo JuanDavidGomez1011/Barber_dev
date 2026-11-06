@@ -16,6 +16,8 @@
   --color-brass-300: #f0cf8e;
   --color-brass-400: #e3b35f;
   --color-brass-500: #c9963f;
+  /* Marcas de gráficos: validado para la superficie oscura (L 0.48–0.67, contraste >= 3:1) */
+  --color-chart-1: #b8862f;
 }
 
 html {

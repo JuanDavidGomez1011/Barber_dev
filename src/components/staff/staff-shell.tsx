@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { logoutAction } from "@/server/actions/auth";
 import { getCurrentUser } from "@/server/auth/dal";
-import { StaffNav, type NavItem } from "./staff-nav";
+import { NavLinks, StaffNav, type NavItem } from "./staff-nav";
 
 /** Marco de los paneles internos (barbero y admin): barra superior + navegación. */
 export function StaffShell({ title, nav, children }: { title: string; nav: NavItem[]; children: React.ReactNode }) {
@@ -24,7 +24,9 @@ export function StaffShell({ title, nav, children }: { title: string; nav: NavIt
             </form>
           </div>
         </div>
-        <StaffNav items={nav} />
+        <Suspense fallback={<NavLinks items={nav} />}>
+          <StaffNav items={nav} />
+        </Suspense>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
     </>

@@ -1,8 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { createBookingSchema, rescheduleSchema, type CreateBookingInput, type RescheduleInput } from "@/lib/validation/booking";
+import { processDue, safeSchedule, type AppointmentEvent } from "../notifications/service";
 import { BookingError, cancelBooking, createBooking, rescheduleBooking } from "../services/booking.service";
 
 export type ActionResult =
@@ -15,6 +17,16 @@ function handleError(error: unknown): ActionResult {
   return { ok: false, error: "Algo salió mal. Intenta de nuevo en un momento." };
 }
 
+/**
+ * Deja en cola los mensajes de WhatsApp del evento y manda los inmediatos
+ * (confirmación, cambio, cancelación) apenas se responde al usuario, sin hacerlo esperar.
+ * Los recordatorios salen después con el cron.
+ */
+async function notify(appointmentId: string, event: AppointmentEvent) {
+  await safeSchedule(appointmentId, event);
+  after(() => processDue({ appointmentId }).catch((e) => console.error("[notificaciones] envío inmediato", e)));
+}
+
 /** Crea la reserva y redirige a la página de la cita. */
 export async function createBookingAction(input: CreateBookingInput): Promise<ActionResult> {
   const parsed = createBookingSchema.safeParse(input);
@@ -25,7 +37,9 @@ export async function createBookingAction(input: CreateBookingInput): Promise<Ac
 
   let token: string;
   try {
-    ({ token } = await createBooking({ serviceId, barberId, startsAt: new Date(startsAt), name, phone, note }));
+    const result = await createBooking({ serviceId, barberId, startsAt: new Date(startsAt), name, phone, note });
+    token = result.token;
+    await notify(result.appointment.id, "created");
   } catch (error) {
     return handleError(error);
   }
@@ -37,7 +51,8 @@ export async function cancelBookingAction(token: string): Promise<ActionResult> 
     return { ok: false, error: "Enlace no válido." };
   }
   try {
-    await cancelBooking(token);
+    const id = await cancelBooking(token);
+    await notify(id, "cancelled");
     return { ok: true };
   } catch (error) {
     return handleError(error);
@@ -48,10 +63,11 @@ export async function rescheduleBookingAction(input: RescheduleInput): Promise<A
   const parsed = rescheduleSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Horario no válido." };
   try {
-    await rescheduleBooking(parsed.data.token, {
+    const id = await rescheduleBooking(parsed.data.token, {
       barberId: parsed.data.barberId,
       startsAt: new Date(parsed.data.startsAt),
     });
+    await notify(id, "rescheduled");
     return { ok: true };
   } catch (error) {
     return handleError(error);

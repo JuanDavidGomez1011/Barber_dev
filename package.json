@@ -17,7 +17,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "test:race": "tsx --conditions=react-server scripts/race-test.ts"
+    "test:race": "tsx --conditions=react-server scripts/race-test.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "db:bootstrap": "tsx scripts/bootstrap.ts",
+    "test:notifications-race": "tsx --conditions=react-server scripts/notifications-race.ts"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
